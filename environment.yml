@@ -1,0 +1,13 @@
+name: retro
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.7.12
+  - pip:
+    - gym==0.21.0
+    - gym-retro==0.8.0
+    - opencv-python==4.5.5.64
+    - stable-baselines3==1.5.0
+    - tensorboard==2.8.0
+    - wandb==0.12.12
