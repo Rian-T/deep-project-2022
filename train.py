@@ -1,57 +1,29 @@
-import retro
-import gym
-from stable_baselines3 import PPO
-from stable_baselines3.common.monitor import Monitor
-from stable_baselines3.common.vec_env import DummyVecEnv, VecVideoRecorder
-import wandb
-from wandb.integration.sb3 import WandbCallback
+from model.basic import MLPModel, CNNModel, ResNetModel, CnnLSTMModel
+from data.MarioKart import MKFrameActionDataModule, MNISTDataModule, MKFrameSequenceActionDataModule
+from pytorch_lightning import Trainer
+from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.callbacks import EarlyStopping
 
-from wrappers.mario_wrappers import *
-from wrappers.retro_wrappers import wrap_deepmind_retro, RewardScaler
 
-config = {
-    "policy_type": "CnnPolicy",
-    "total_timesteps": 5_000_000,
-    "env_name": "SuperMarioKart-Snes",
-}
+models = {"MLP": MLPModel, "CNN": CNNModel, "RESNET": ResNetModel, "LSTM": CnnLSTMModel}
 
-run = wandb.init(
-    project="deep-project-2022",
-    config=config,
-    sync_tensorboard=True,  # auto-upload sb3's tensorboard metrics
-    monitor_gym=True,  # auto-upload the videos of agents playing the game
-    save_code=True,  # optional
+model_choosed = list(models.items())[2]
+
+mk_ds = MKFrameActionDataModule(batch_size=256)
+#mk_ds = MKFrameSequenceActionDataModule("datasets/MarioKartFrameSequence16", batch_size=64)
+model = model_choosed[1]()
+#model = CNNModel.load_from_checkpoint(f"checkpoints/CNN/deep-project-2022/2a5qk2g1/checkpoints/epoch=10-step=1166.ckpt")
+#model = ResNetModel.load_from_checkpoint(f"checkpoints/RESNET/deep-project-2022/1ivbxl2j/checkpoints/epoch=6-step=2954.ckpt")
+
+wandb_logger = WandbLogger(project="deep-project-2022")
+
+trainer = Trainer(
+    gpus=1,
+    default_root_dir=f"checkpoints/{model_choosed[0]}",
+    callbacks=[EarlyStopping(monitor="val_loss", mode="min", patience=10)],
+    logger=wandb_logger,
 )
 
-def make_env():
-    env = retro.make(config["env_name"])
-    env = Discretizer(env, DiscretizerActions.SIMPLE)
-    # env= ReduceBinaryActions(env,BinaryActions.SIMPLE)
-    env = TimeLimitWrapperMarioKart(env, minutes=3,seconds=0)
-    env = CutMarioMap(env,show_map=False)
-    env = wrap_deepmind_retro(env)    
-    env = RewardScaler(env)
-    env = Monitor(env)  # record stats such as returns
-    return env
-    
-
-env = DummyVecEnv([make_env])
-env = VecVideoRecorder(env, f"videos/{run.id}", record_video_trigger=lambda x: x % 2000 == 0, video_length=200)
-model = PPO(config["policy_type"], env, verbose=1, tensorboard_log=f"runs/{run.id}")
-model.learn(
-    total_timesteps=config["total_timesteps"],
-    callback=WandbCallback(
-        gradient_save_freq=100,
-        model_save_path=f"models/{run.id}",
-        verbose=2,
-    ),
-)
-run.finish()
-
-obs = env.reset()
-for i in range(1000000):
-    action, _state = model.predict(obs, deterministic=True)
-    obs, reward, done, info = env.step(action)
-    env.render()
-    if done:
-      obs = env.reset()
+trainer.fit(model, mk_ds)
+results = trainer.test(model, mk_ds)
+print(results)

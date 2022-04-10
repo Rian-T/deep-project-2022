@@ -211,12 +211,13 @@ def make_retro(*, game, state=None, max_episode_steps=4500, **kwargs):
         env = TimeLimit(env, max_episode_steps=max_episode_steps)
     return env
 
-def wrap_deepmind_retro(env, scale=True, frame_stack=4):
+def wrap_deepmind_retro(env, warp = True, scale=True, frame_stack=4):
     """
     Configure environment for retro games, using config similar to DeepMind-style Atari in wrap_deepmind
     """
-    #env = AtariWrapper(env)
-    env = WarpFrame(env)
+    # env = AtariWrapper(env)
+    if warp:
+        env = WarpFrame(env)
     env = ClipRewardEnv(env)
     # if frame_stack > 1:
     #     env = FrameStack(env, frame_stack)

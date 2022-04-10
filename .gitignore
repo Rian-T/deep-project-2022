@@ -1,7 +1,18 @@
+# Data
+generated_dataset
+ppo
+ppo_backup
+models
+checkpoints
+datasets
+*.zip
+
 # Logging
 runs
 videos
 wandb
+lightning_logs
+deep-project-2022
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

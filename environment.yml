@@ -2,8 +2,12 @@ name: retro
 channels:
   - conda-forge
   - defaults
+  - pytorch
 dependencies:
   - python=3.7.12
+  - torchvision
+  - pytorch
+  - cudatooolkit
   - pip:
     - gym==0.21.0
     - gym-retro==0.8.0
@@ -11,3 +15,6 @@ dependencies:
     - stable-baselines3==1.5.0
     - tensorboard==2.8.0
     - wandb==0.12.12
+    - tqdm
+    - pytorch-lightning
+    - torchmetrics
