@@ -16,7 +16,9 @@ class MLPModel(pl.LightningModule):
         self.train_acc = torchmetrics.Accuracy()
         self.valid_acc = torchmetrics.Accuracy()
         self.valid_f1 = torchmetrics.F1Score(average='micro')
-
+        self.test_acc = torchmetrics.Accuracy()
+        self.test_f1 = torchmetrics.F1Score(average='micro')
+        
         self.learning_rate = lr
 
     def forward(self, x):
@@ -52,7 +54,11 @@ class MLPModel(pl.LightningModule):
         x, y = batch
         y_hat = self(x)
         loss = F.cross_entropy(y_hat, y)
-        return {"test_loss": loss}
+        self.test_acc(y_hat, y)
+        self.test_f1(y_hat, y)
+        metrics = {"test_acc": self.test_f1, "test_loss": loss, "test_f1": self.test_f1}
+        self.log_dict(metrics)
+        return metrics
     
 
     def configure_optimizers(self):
