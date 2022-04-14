@@ -1,9 +1,9 @@
-# Playing MarioKart in Real-Time using Deep Learning
+# Playing MarioKart in Real-Time
 
 Magalie ANDORFER-HIRSCH
 Rian TOUCHENT
 
-This is our project for the course Deep Learning at CentraleSupélec - 2022
+This is our project for the course Deep Learning and Computer Vision at CentraleSupélec - 2022
 
 
 ![](assets/pres.gif)   
